@@ -31,7 +31,8 @@ public class ProjectDao extends DaoBase {
 	 * ProjectService class.
 	 * 
 	 * Creates the SQL string statement for inserting the project into the database.
-	 * Uses ? placeholders for the parameters of the project object.
+	 * Uses ? placeholders for the parameters of the project object, except the
+	 * auto-generated project_id.
 	 * 
 	 * Uses try-with-resources to make the connection to the database using the
 	 * getConnection method in the DbConnection class. If the connection fails, an
@@ -186,7 +187,7 @@ public class ProjectDao extends DaoBase {
 	 * Returns the List of projects if everything succeeds.
 	 */
 	public Optional<Project> fetchProjectByIdDao(Integer projectId) {
-		String sql = "Select * FROM " + PROJECT_TABLE + " WHERE project_id = ?";
+		String sql = "SELECT * FROM " + PROJECT_TABLE + " WHERE project_id = ?";
 		
 		try(Connection conn = DbConnection.getConnection()) {
 			startTransaction(conn);
@@ -297,7 +298,7 @@ public class ProjectDao extends DaoBase {
 	 * This method throws the SQLException set up in the try-with-resources of the method that called it.
 	 * 
 	 * Creates the SQL string statement for selecting a project's categories from the category table
-	 *  joined with the project_category table by project_id using a ? placeholder.
+	 *  joined with the project_category table by category_id using a ? placeholder.
 	 * 
 	 * Starts the transaction using the startTransaction method in the DaoBase class.
 	 * 
@@ -313,25 +314,169 @@ public class ProjectDao extends DaoBase {
 	 * Once all the materials are added, the List is returned to the calling class.
 	 */
 	private List<Category> fetchCategoriesForProject(Connection conn, Integer projectId) throws SQLException {
-		// formatter:off
+		// @formatter:off
 		String sql = ""
 			+ "Select c.* FROM " + CATEGORY_TABLE + " c "
 			+ "JOIN " + PROJECT_CATEGORY_TABLE + " pc USING (category_id) "
 			+ "WHERE project_id = ?";
-		// formatter:on
-		
-		try(PreparedStatement stmt = conn.prepareStatement(sql)) {
+		// @formatter:on
+
+		try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 			setParameter(stmt, 1, projectId, Integer.class);
-			
-			try(ResultSet rs = stmt.executeQuery()) {
+
+			try (ResultSet rs = stmt.executeQuery()) {
 				List<Category> categories = new LinkedList<>();
-				
-				while(rs.next()) {
+
+				while (rs.next()) {
 					categories.add(extract(rs, Category.class));
 				}
 				return categories;
 			}
-		}		
+		}
 	} // end fetchCategoriesForProject
-	
+
+	/*
+	 * Receives the project object with updated details from
+	 * modifyProjectDetailsService method in the ProjectService class.
+	 * 
+	 * Creates the SQL string statement for updating the project details in the
+	 * database. Uses ? placeholders for the parameters of the project object,
+	 * except the auto-generated project_id.
+	 * 
+	 * Uses try-with-resources to make the connection to the database using the
+	 * getConnection method in the DbConnection class. If the connection fails, an
+	 * exception is thrown.
+	 * 
+	 * Starts the transaction using the startTransaction method in the DaoBase
+	 * class.
+	 * 
+	 * Inside the connection Try, uses try-with-resources for the SQL Prepared
+	 * Statement, then sets parameters for the project object, then attempts to
+	 * execute the update on the database.
+	 * 
+	 * NOTE: executeUpdate returns the number of rows that were affected by the
+	 * transaction. Since only one project is being updated, only 1 row should be
+	 * changed.
+	 * 
+	 * If the number of rows affected by executeUpdate is equal to 1, a boolean
+	 * variable is set to True, the transaction is committed, and the boolean value
+	 * is returned to modifyProjectDetailsService, which ignores the True since the
+	 * expected result was achieved.
+	 * 
+	 * If no rows or more than 1 row was affected, the boolean variable is set to
+	 * False and returned to modifyProjectDetailsService, which then throws an
+	 * exception stating the project with the passed ID does not exist.
+	 * 
+	 * If any exception is thrown in the Prepared Statement portion, the entire
+	 * transaction is rolled back using the rollbackTransaction method in the
+	 * DaoBase class.
+	 * 
+	 * If any exception is thrown in the Connection Try block, an SQL exception is
+	 * thrown.
+	 */
+	public boolean modifyProjectDetailsDao(Project project) {
+		// @formatter:off
+		String sql = ""
+			+ "UPDATE " + PROJECT_TABLE + " SET "
+			+ "project_name = ?, "
+			+ "estimated_hours = ?, "
+			+ "actual_hours = ?, "
+			+ "difficulty = ?, "
+			+ "notes = ? "
+			+ "WHERE project_id = ?";
+		// @formatter:on
+
+		try (Connection conn = DbConnection.getConnection()) {
+			startTransaction(conn);
+
+			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+				setParameter(stmt, 1, project.getProjectName(), String.class);
+				setParameter(stmt, 2, project.getEstimatedHours(), BigDecimal.class);
+				setParameter(stmt, 3, project.getActualHours(), BigDecimal.class);
+				setParameter(stmt, 4, project.getDifficulty(), Integer.class);
+				setParameter(stmt, 5, project.getNotes(), String.class);
+				setParameter(stmt, 6, project.getProjectId(), Integer.class);
+
+				// executeUpdate() returns a value that represents the number of rows affected.
+				// We expect to update only one row so the return value should be 1, which will
+				// set updated to True.
+				boolean updated = stmt.executeUpdate() == 1;
+				commitTransaction(conn);
+
+				return updated;
+
+			} catch (Exception e) {
+				throw new DbException(e);
+			}
+
+		} catch (SQLException e) {
+			throw new DbException(e);
+		}
+	} // end modifyProjectDetailsDao
+
+	/*
+	 * Receives the project ID to be deleted from deleteProjectService method in the
+	 * ProjectService class.
+	 * 
+	 * Creates the SQL string statement for deleting a project by ID using a ?
+	 * placeholder for the project ID.
+	 * 
+	 * Uses try-with-resources to make the connection to the database using the
+	 * getConnection method in the DbConnection class. If the connection fails, an
+	 * exception is thrown.
+	 * 
+	 * Starts the transaction using the startTransaction method in the DaoBase
+	 * class.
+	 * 
+	 * Inside the connection Try, uses try-with-resources for the SQL Prepared
+	 * Statement, then sets the project ID parameter for the project to be deleted,
+	 * then attempts to execute the update on the database.
+	 * 
+	 * NOTE: executeUpdate returns the number of rows that were affected by the
+	 * transaction. Since only one project is being deleted, only 1 row should be
+	 * affected.
+	 * 
+	 * If the number of rows affected by executeUpdate is equal to 1, a boolean
+	 * variable is set to True, the transaction is committed, and the boolean value
+	 * is returned to modifyProjectDetailsService, which ignores the True since the
+	 * expected result was achieved.
+	 * 
+	 * If no rows or more than 1 row was affected, the boolean variable is set to
+	 * False and returned to modifyProjectDetailsService, which then throws an
+	 * exception stating the project with the passed ID does not exist.
+	 * 
+	 * If any exception is thrown in the Prepared Statement portion, the entire
+	 * transaction is rolled back using the rollbackTransaction method in the
+	 * DaoBase class.
+	 * 
+	 * If any exception is thrown in the Connection Try block, an SQL exception is
+	 * thrown.
+	 */
+	public boolean deleteProjectDao(Integer projectId) {
+		String sql = "DELETE FROM " + PROJECT_TABLE + " WHERE project_id = ?";
+
+		try (Connection conn = DbConnection.getConnection()) {
+			startTransaction(conn);
+
+			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+				setParameter(stmt, 1, projectId, Integer.class);
+
+				// executeUpdate() returns a value that represents the number of rows affected.
+				// We expect to delete only one row so the return value should be 1, which will
+				// set updated to True.
+				boolean updated = stmt.executeUpdate() == 1;
+				commitTransaction(conn);
+
+				return updated;
+
+			} catch (DbException e) {
+				rollbackTransaction(conn);
+				throw new DbException(e);
+			}
+
+		} catch (SQLException e) {
+			throw new DbException(e);
+		}
+	} // end deleteProjectDao
+
 } // end CLASS

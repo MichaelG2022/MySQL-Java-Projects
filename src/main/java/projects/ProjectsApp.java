@@ -11,13 +11,13 @@ import projects.service.ProjectService;
 
 public class ProjectsApp {
 
-	// Instantiates a Scanner object to get user input.
+	// Instantiates a Scanner object for capturing user input using System.in
 	private Scanner scanner = new Scanner(System.in);
 
 	// Instantiates a projectService object.
 	private ProjectService projectService = new ProjectService();
 
-	// Instantiates a Project object.
+	// Instantiates a Project object to hold the current project.
 	private Project currentProject;
 
 	// Creates a List of possible menu choices for the user.
@@ -25,7 +25,9 @@ public class ProjectsApp {
 	private List<String> operations = List.of(
 		"1) Add a project",
 		"2) List the available projects",
-		"3) Select a project to view",
+		"3) Select a project",
+		"4) Update project details",
+		"5) Delete a project",
 		"99) Display the menu"
 	); // end operations
 	// @formatter:on
@@ -36,16 +38,18 @@ public class ProjectsApp {
 	} // end MAIN
 
 	/*
-	 * Uses a while loop to keep the program running until the user quits the program by
-	 * hitting the Enter key on a blank line, which calls the exitMenu method to stop the program.
+	 * Uses a while loop to keep the program running until the user quits the
+	 * program by hitting the Enter key on a blank line, which calls the exitMenu
+	 * method to exit the program.
 	 * 
-	 * Calls the getUserSelection method to get the user input
-	 * and uses a switch to determine what the user wants to do next.
+	 * Calls the getUserSelection method to get the user input and uses a switch to
+	 * determine what the user wants to do next.
+	 * 
+	 * An integer input that is not included in the menu causes the Switch default
+	 * option to tell the user the selection is not valid and prompts them to try
+	 * again.
 	 * 
 	 * A non-integer input throws an exception and prompts the user to try again.
-	 * 
-	 * An integer input that is not included in the menu causes the Switch default option to tell the
-	 * user the selection is not valid and prompts them to try again.
 	 * 
 	 * Calls the appropriate method depending on the user input choice.
 	 */
@@ -73,14 +77,24 @@ public class ProjectsApp {
 					getProjectByIdMain();
 					break;
 
-				// breaks out of the processUserSelection while loop to redisplay the menu at user's request	
+				case 4:
+					updateProjectDetails();
+					break;
+
+				case 5:
+					deleteProject();
+					break;
+
+				// breaks out of the processUserSelection while loop to redisplay the menu at
+				// user's request
 				case 99:
-					// Clears currentProject to prevent listing of project again until user chooses to do so.
+					// Clears currentProject to prevent listing of project again until user chooses
+					// to do so.
 					currentProject = null;
 					break;
 
 				default:
-					System.out.println("\n" + selection + " is not a valid selection. Try again.");
+					System.out.println("\n" + selection + " is not a valid choice. Try again.");
 				} // end SWITCH
 			} catch (Exception e) {
 				System.out.println("\nError: " + e + " Try again.");
@@ -93,8 +107,12 @@ public class ProjectsApp {
 	 * 
 	 * Calls the getIntInput method and passes the menu user prompt.
 	 * 
-	 * Uses a ternary conditional operator to return -1 is returned to the processUserSelection method,
-	 * which causes the program to exit, otherwise it returns the user input to the processUserSelection method.
+	 * Uses a ternary conditional operator to process the user menu selection
+	 * returned from getIntInput.
+	 * 
+	 * If the user input is null, a -1 is returned to the processUserSelection
+	 * method, which causes the program to exit, otherwise the user input is
+	 * returned to the processUserSelection method.
 	 */
 	private int getUserSelection() {
 		printOperations();
@@ -106,11 +124,11 @@ public class ProjectsApp {
 	} // end getUserSelection
 
 	/*
-	 * Displays the menu header then the menu choices by using Lambda expression on the
-	 * operations List<> created above.
+	 * Displays the menu header then the menu choices by using a Lambda expression
+	 * on the operations List<> created above.
 	 */
 	private void printOperations() {
-		System.out.println("\n  Menu choices:");
+		System.out.println("\nMenu choices:");
 
 		operations.forEach(line -> System.out.println("  " + line));
 
@@ -122,13 +140,16 @@ public class ProjectsApp {
 	} // end printOperations
 
 	/*
-	 * Calls the getStringInput method with the user prompt to capture the user input
-	 * selection then attempts to validate the returned input value as an Integer.
+	 * Calls the getStringInput method with the user prompt to capture the user
+	 * input selection then attempts to validate the returned input value as an
+	 * Integer.
 	 *
- 	 * If the user hits the Enter key on a blank line to quit, a null is returned to the calling method.
- 	 * 
-	 * If the input is not an Integer, an exception is thrown and the user is prompted to try again.
-	 *  
+	 * If the user hits the Enter key on a blank line to quit, a null is returned to
+	 * the calling method.
+	 * 
+	 * If the input is not an Integer, an exception is thrown and the user is
+	 * prompted to try again.
+	 * 
 	 * If the input is a valid integer, it is returned to the calling method.
 	 */
 	private Integer getIntInput(String prompt) {
@@ -147,8 +168,8 @@ public class ProjectsApp {
 	/*
 	 * Displays the user prompt and uses Scanner to capture the user input line.
 	 * 
-	 * Uses a ternary conditional operator to return null if the input is blank,
-	 * or the trimmed user input to the calling method.
+	 * Uses a ternary conditional operator to return null if the input is blank, or
+	 * the trimmed user input to the calling method.
 	 */
 	private String getStringInput(String prompt) {
 		System.out.print(prompt + ": ");
@@ -158,13 +179,16 @@ public class ProjectsApp {
 	} // end getStringInput
 
 	/*
-	 * Calls the getStringInput method with the user prompt to capture the user input
-	 * selection then attempts to validate the returned input value as a decimal.
+	 * Calls the getStringInput method with the user prompt to capture the user
+	 * input selection then attempts to validate the returned input value as a
+	 * decimal.
 	 *
- 	 * If the user hits the Enter key on a blank line to quit, a null is returned to the calling method.
- 	 * 
-	 * If the input is not a decimal, an exception is thrown and the user is prompted to try again.
-	 *  
+	 * If the user hits the Enter key on a blank line to quit, a null is returned to
+	 * the calling method.
+	 * 
+	 * If the input is not a decimal, an exception is thrown and the user is
+	 * prompted to try again.
+	 * 
 	 * If the input is a valid decimal, it is returned to the calling method.
 	 */
 	private BigDecimal getDecimalInput(String string) {
@@ -181,28 +205,33 @@ public class ProjectsApp {
 	} // end getDecimalInput
 
 	/*
-	 * Captures the user input for each parameter in a project object, prompting the
-	 * user each time for the desired information and calling the appropriate method
-	 * for each type of expected input.
+	 * Captures the user input for each parameter in a project object (except the
+	 * auto-generated project ID), prompting the user each time for the desired
+	 * information and calling the appropriate method for each type of expected
+	 * input.
 	 * 
-	 * Creates a new project object and sets the parameters of the project object with
-	 * the validated user input.
+	 * Instantiates a new project object and sets the parameters of the project
+	 * object with the validated user input.
 	 * 
-	 * Calls the addProject method in the ProjectService class with the new project object as an
-	 * argument.
+	 * Calls the addProject method in the ProjectService class with the new project
+	 * object as an argument.
 	 * 
-	 * If the project is successfully added to the database, the user is notified and
-	 * the project information is displayed, along with the auto-generated project id,
-	 * then the user menu is displayed again.
+	 * If the project is successfully added to the database, the user is notified
+	 * and the project information is displayed, along with the auto-generated
+	 * project id, then the user menu is displayed again.
 	 * 
-	 * If the project is not successfully created, the exceptions thrown by other methods will be displayed.
+	 * If the project is not successfully created, the exceptions thrown by other
+	 * methods will be displayed.
 	 */
 	private void createProject() {
 		String projectName = getStringInput("Enter the project name");
 		BigDecimal estimatedHours = getDecimalInput("Enter the estimated hours");
 		BigDecimal actualHours = getDecimalInput("Enter the actual hours");
 		Integer difficulty = getIntInput("Enter the project difficulty (1-5)");
-		validateDifficulty(difficulty);
+		// Calls validateDifficulty method if difficulty input from user is not null.
+		if (Objects.nonNull(difficulty)) {
+			validateDifficulty(difficulty);
+		}
 		String notes = getStringInput("Enter the project notes");
 
 		Project project = new Project();
@@ -217,39 +246,48 @@ public class ProjectsApp {
 		System.out.println("You have successfully created project: " + dbProject);
 	} // end createProject
 
-	// Validates difficulty input to be between 1 and 5 inclusive. If not, the user is prompted to try again.
+	// Validates difficulty input to be between 1 and 5 inclusive. If not, the user
+	// is prompted to try again.
 	private void validateDifficulty(Integer difficulty) {
 		if (difficulty < 1 || difficulty > 5) {
-			// Removes current project so it is not displayed again
-			currentProject = null;
 			throw new DbException(difficulty + " is not between 1 and 5. ");
 		}
 	} // end validateDifficulty
 
 	/*
-	 * Calls the getListOfProjectNames method in projectService. Receives a List of available projects in return.
+	 * Calls the getListOfProjectNames method in projectService. Receives a List of
+	 * available projects in return.
 	 * 
-	 * Prints the List of available projects using Lambda.
+	 * Removes currentProject so the project information listing does not clutter
+	 * the console.
+	 * 
+	 * Prints the List of available projects using a Lambda expression.
 	 */
 	private void getProjectNames() {
 		List<Project> projects = projectService.getListOfProjectNames();
+
+		currentProject = null;
 
 		System.out.println("\nAvailable projects:");
 
 		projects.forEach(
 				project -> System.out.println("  " + project.getProjectId() + ": " + project.getProjectName()));
-
-		//return projects;
 	} // end listProjectNames
-	
+
 	/*
-	 * Calls the getProjectNames method to display the available projects for the user.
+	 * Calls the getProjectNames method to display the available projects for the
+	 * user.
 	 * 
-	 * Prompts the user to input the project id they want to see. Resets the current project selection.
+	 * Prompts the user to input the project id they want to see.
 	 * 
-	 * Calls the fetchProjectByIdService, passing the selected project id.
+	 * Removes currentProject so the project information listing does not clutter
+	 * the console.
 	 * 
-	 * Validates that the current id is an available project to display. If not, tells the user to try again.
+	 * Calls the fetchProjectByIdService, passing the selected project id and sets
+	 * currentProject to that project.
+	 * 
+	 * Validates that the current id is an available project to display. If not,
+	 * tells the user to try again.
 	 * 
 	 */
 	private void getProjectByIdMain() {
@@ -257,7 +295,6 @@ public class ProjectsApp {
 
 		Integer projectId = getIntInput("Select a project ID to see that project");
 
-		// Deselect the currently selected project;
 		currentProject = null;
 
 		currentProject = projectService.fetchProjectByIdService(projectId);
@@ -266,6 +303,90 @@ public class ProjectsApp {
 			System.out.println("\nThat is not a valid project.");
 		}
 	} // end selectProject
+
+	/*
+	 * Checks to see if a current project is selected. If not, user is prompted to
+	 * do so using menu option 3.
+	 * 
+	 * If current project is selected, calls the appropriate input method for each
+	 * project parameter (except project ID, which is in currentProject) and prompts
+	 * the user to enter the new value as well as displaying the value of the
+	 * parameter in the current project.
+	 * 
+	 * Instantiates a new project object and sets the project ID from the currently
+	 * selected project.
+	 * 
+	 * Using a ternary conditional operator to determine if the user input for the
+	 * parameter is null or not. If the input for a given parameter is null, the
+	 * parameter value of the current project is set on the new project object. If
+	 * the input is not null, the user input for that parameter is set on the new
+	 * project object.
+	 * 
+	 * Calls modifyProjectDetailsService and passes the new project object.
+	 * 
+	 * If the modification is successful, fetchProjectByIdService is called to
+	 * update the currentProject.
+	 */
+	private void updateProjectDetails() {
+		if (Objects.isNull(currentProject)) {
+			System.out.println("\nYou do not have an active project. Choose menu option 3 to select a project");
+			return;
+		}
+
+		String projectName = getStringInput("Enter the project name [" + currentProject.getProjectName() + "]");
+		BigDecimal estimatedHours = getDecimalInput(
+				"Enter the estimated hours [" + currentProject.getEstimatedHours() + "]");
+		BigDecimal actualHours = getDecimalInput("Enter the actual hours [" + currentProject.getActualHours() + "]");
+		Integer difficulty = getIntInput("Enter the project difficulty (1-5) [" + currentProject.getDifficulty() + "]");
+		// Calls validateDifficulty method if difficulty input from user is not null.
+		if (Objects.nonNull(difficulty)) {
+			validateDifficulty(difficulty);
+		}
+		String notes = getStringInput("Enter the project notes [" + currentProject.getNotes() + "]");
+
+		Project project = new Project();
+
+		project.setProjectId(currentProject.getProjectId());
+		project.setProjectName(Objects.isNull(projectName) ? currentProject.getProjectName() : projectName);
+		project.setEstimatedHours(Objects.isNull(estimatedHours) ? currentProject.getEstimatedHours() : estimatedHours);
+		project.setActualHours(Objects.isNull(actualHours) ? currentProject.getActualHours() : actualHours);
+		project.setDifficulty(Objects.isNull(difficulty) ? currentProject.getDifficulty() : difficulty);
+		project.setNotes(Objects.isNull(notes) ? currentProject.getNotes() : notes);
+
+		projectService.modifyProjectDetailsService(project);
+
+		currentProject = projectService.fetchProjectByIdService(currentProject.getProjectId());
+	} // end updateProjectDetails
+
+	/*
+	 * Calls getProjectNames to display list of available projects.
+	 * 
+	 * Prompts user for ID of project to delete.
+	 * 
+	 * If user input is not null, calls deleteProjectService and passes the project
+	 * ID the user has selected for deletion.
+	 * 
+	 * If project is successfully deleted, user is informed that the project has
+	 * been deleted.
+	 * 
+	 * Checks to see if currentProject is not null and is the same project that was
+	 * deleted. If so, currentProject is set to null.
+	 */
+	private void deleteProject() {
+		getProjectNames();
+
+		Integer projectId = getIntInput("Enter the ID of the project to delete");
+
+		if (Objects.nonNull(projectId)) {
+			projectService.deleteProjectService(projectId);
+
+			System.out.println("Project with ID=" + projectId + " has been deleted");
+
+			if (Objects.nonNull(currentProject) && currentProject.getProjectId().equals(projectId)) {
+				currentProject = null;
+			}
+		}
+	} // end deleteProject
 
 	/*
 	 * Tells the user that the program is exiting and returns True to
