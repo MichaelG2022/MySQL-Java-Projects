@@ -63,7 +63,7 @@ public class ProjectDao extends DaoBase {
 		String sql = ""
 			+ "INSERT INTO " + PROJECT_TABLE + " "
 			+ "(project_name, estimated_hours, actual_hours, difficulty, notes) "
-			+ "VALUE "
+			+ "VALUES "
 			+ "(?, ?, ?, ?, ?)";
 		// @formatter:on
 
